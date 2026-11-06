@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if editing else 'Add' }} product{% endblock %}
+{% block content %}
+<div class="page-head"><h1 class="page-title">{{ 'Edit product' if editing else 'Add product' }}</h1></div>
+<form method="post" class="panel form-panel">
+  <div class="mb-3"><label class="form-label">Name</label>
+    <input class="form-control" name="name" maxlength="100" required value="{{ product.name or '' }}"></div>
+  <div class="row">
+    <div class="col-6 mb-3"><label class="form-label">Price (₱)</label>
+      <input class="form-control" type="number" step="0.01" min="0" name="price" required value="{{ product.price if product.price is not none else '' }}"></div>
+    <div class="col-6 mb-3"><label class="form-label">Stock quantity</label>
+      <input class="form-control" type="number" min="0" step="1" name="stock" required value="{{ product.stock if product.stock is not none else '' }}"></div>
+  </div>
+  <div><button class="btn btn-primary">Save product</button>
+    <a class="btn btn-link" href="{{ url_for('products') }}">Cancel</a></div>
+</form>
+{% endblock %}

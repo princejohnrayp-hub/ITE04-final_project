@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pill %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <div class="hero-label">Revenue from confirmed and completed orders</div>
+    <div class="hero-fig">{{ stats.revenue|peso }}</div>
+  </div>
+  <dl class="hero-stats">
+    <div><dt>Pending orders</dt><dd>{{ stats.pending }}</dd></div>
+    <div><dt>Products</dt><dd>{{ stats.products }}</dd></div>
+    <div><dt>Customers</dt><dd>{{ stats.customers }}</dd></div>
+  </dl>
+</section>
+
+<div class="two-col">
+  <section class="panel">
+    <h2 class="panel-title">Recent orders</h2>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th class="num">Total</th></tr></thead>
+        <tbody>
+        {% for o in recent %}
+          <tr><td><a class="cell-strong" href="{{ url_for('order_detail', order_id=o.order_id) }}">#{{ o.order_id }}</a></td>
+              <td>{{ o.customer }}</td><td>{{ pill(o.status) }}</td><td class="num">{{ o.total|peso }}</td></tr>
+        {% else %}
+          <tr><td colspan="4"><div class="empty"><strong>No orders yet</strong><a href="{{ url_for('order_new') }}">Create the first order</a></div></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 class="panel-title">Running low</h2>
+    <p class="panel-note">Products with 10 or fewer in stock</p>
+    {% for p in low_stock %}
+      <div class="stock-row">
+        <span class="cell-strong">{{ p.name }}</span>
+        <div class="meter {{ 'out' if p.stock == 0 }}"><span style="width: {{ [p.stock * 10, 100]|min }}%"></span></div>
+        <span class="stock-n">{{ p.stock }}</span>
+      </div>
+    {% else %}
+      <div class="empty"><strong>Stock looks healthy</strong>Nothing is at 10 units or below.</div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

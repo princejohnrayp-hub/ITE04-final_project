@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pill %}
+{% block title %}Order #{{ order.order_id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 class="page-title">Order #{{ order.order_id }} {{ pill(order.status) }}</h1>
+    <p class="page-sub">{{ order.customer }} · {{ order.order_date }}</p></div>
+  <a href="{{ url_for('orders') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to orders</a>
+</div>
+
+{% set steps = ['Pending', 'Confirmed', 'Completed'] %}
+{% if order.status == 'Cancelled' %}
+  <div class="cancel-banner"><i class="bi bi-slash-circle"></i> This order was cancelled. Any reserved stock has been returned.</div>
+{% else %}
+  {% set idx = steps.index(order.status) %}
+  <ol class="steps" style="max-width:640px">
+    {% for s in steps %}<li class="{{ 'done' if loop.index0 < idx }} {{ 'now' if loop.index0 == idx }}">{{ s }}</li>{% endfor %}
+  </ol>
+{% endif %}
+
+<div class="slip-wrap">
+  <div class="slip">
+    <div class="slip-top"><span class="slip-no">Order #{{ order.order_id }}</span><span class="slip-date">{{ order.order_date }}</span></div>
+    <div class="slip-who">{{ order.customer }}<small>{{ order.contact }}</small></div>
+    <ul class="slip-lines">
+      {% for i in items %}
+        <li class="line"><span>{{ i.quantity }} × {{ i.name }}</span><span class="dots"></span><span>{{ i.subtotal|peso }}</span></li>
+        <li class="sub {{ 'short' if order.status == 'Pending' and i.quantity > i.stock }}">
+          @ {{ i.unit_price|peso }} each
+          {% if order.status == 'Pending' %}· {{ i.stock }} in stock{% if i.quantity > i.stock %} — not enough to confirm{% endif %}{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+    <div class="slip-total"><span>Total</span><span>{{ order.total|peso }}</span></div>
+  </div>
+
+  <div>
+    {% if next_statuses %}
+    <div class="panel panel-pad mb-3" style="max-width:420px">
+      <div class="cell-strong mb-2">Update status</div>
+      {% for s in next_statuses %}
+      <form class="d-inline" method="post" action="{{ url_for('order_status', order_id=order.order_id) }}"
+            {% if s == 'Cancelled' %}onsubmit="return confirm('Cancel this order?');"{% endif %}>
+        <input type="hidden" name="status" value="{{ s }}">
+        <button class="btn btn-{{ 'outline-danger' if s == 'Cancelled' else 'primary' }}">
+          {{ 'Confirm order' if s == 'Confirmed' else ('Mark as completed' if s == 'Completed' else 'Cancel order') }}</button>
+      </form>
+      {% endfor %}
+      {% if order.status == 'Pending' %}<p class="text-muted small mt-2 mb-0">Confirming takes the ordered quantities out of stock.</p>
+      {% elif order.status == 'Confirmed' %}<p class="text-muted small mt-2 mb-0">Cancelling a confirmed order puts the stock back.</p>{% endif %}
+    </div>
+    {% endif %}
+    {% if order.status in ('Pending', 'Cancelled') %}
+    <form method="post" action="{{ url_for('order_delete', order_id=order.order_id) }}" onsubmit="return confirm('Delete this order permanently?');">
+      <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Delete order</button></form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

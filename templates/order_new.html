@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}New order{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1 class="page-title">New order</h1><p class="page-sub">Pick a customer and add the items they want.</p></div></div>
+{% if not customers %}
+  <div class="alert alert-warning">Add a customer before creating an order. <a href="{{ url_for('customer_new') }}">Add customer</a></div>
+{% elif not products %}
+  <div class="alert alert-warning">Add a product before creating an order. <a href="{{ url_for('product_new') }}">Add product</a></div>
+{% else %}
+<form method="post" class="panel panel-pad" style="max-width:760px">
+  <div class="mb-4" style="max-width:420px"><label class="form-label">Customer</label>
+    <select class="form-select" name="customer_id" required>
+      <option value="">Select a customer</option>
+      {% for c in customers %}<option value="{{ c.customer_id }}" {{ 'selected' if selected == c.customer_id }}>{{ c.name }} ({{ c.contact }})</option>{% endfor %}
+    </select></div>
+
+  <label class="form-label">Items</label>
+  <div id="items"></div>
+  <button type="button" class="btn btn-outline-secondary btn-sm" id="addRow"><i class="bi bi-plus-lg"></i> Add another item</button>
+
+  <div class="total-bar">
+    <small>The server recalculates the final total from current prices. Stock is checked when you confirm the order.</small>
+    <div><span class="text-muted">Estimated total</span><br><strong id="total">₱0.00</strong></div>
+  </div>
+  <div><button class="btn btn-primary">Create order</button>
+    <a class="btn btn-link" href="{{ url_for('orders') }}">Cancel</a></div>
+</form>
+
+<template id="rowTemplate">
+  <div class="item-row">
+    <select class="form-select product" name="product_id" aria-label="Product">
+      <option value="" data-price="0">Select a product</option>
+      {% for p in products %}<option value="{{ p.product_id }}" data-price="{{ p.price }}">{{ p.name }} — {{ p.price|peso }} ({{ p.stock }} in stock)</option>{% endfor %}
+    </select>
+    <input class="form-control qty" type="number" min="1" step="1" name="quantity" value="1" aria-label="Quantity">
+    <button type="button" class="btn btn-outline-danger remove" aria-label="Remove item"><i class="bi bi-x-lg"></i></button>
+  </div>
+</template>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+  const box = document.getElementById("items");
+  const tpl = document.getElementById("rowTemplate");
+  if (box && tpl) {
+    const peso = n => "₱" + n.toLocaleString("en-PH", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    function recalc() {
+      let total = 0;
+      box.querySelectorAll(".item-row").forEach(r => {
+        const price = parseFloat(r.querySelector(".product").selectedOptions[0].dataset.price) || 0;
+        const qty = parseInt(r.querySelector(".qty").value) || 0;
+        total += price * qty;
+      });
+      document.getElementById("total").textContent = peso(total);
+    }
+    function addRow() { box.appendChild(tpl.content.cloneNode(true)); recalc(); }
+    document.getElementById("addRow").addEventListener("click", addRow);
+    box.addEventListener("input", recalc);
+    box.addEventListener("click", e => {
+      const btn = e.target.closest(".remove");
+      if (btn && box.querySelectorAll(".item-row").length > 1) { btn.closest(".item-row").remove(); recalc(); }
+    });
+    addRow();
+  }
+</script>
+{% endblock %}

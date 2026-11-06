@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 class="page-title">Customers</h1><p class="page-sub">Everyone you take orders from.</p></div>
+  <a href="{{ url_for('customer_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add customer</a>
+</div>
+<form class="toolbar" method="get">
+  <input class="form-control" name="q" value="{{ q }}" placeholder="Search name or contact">
+  <button class="btn btn-outline-secondary"><i class="bi bi-search"></i> Search</button>
+  {% if q %}<a class="btn btn-link" href="{{ url_for('customers') }}">Clear search</a>{% endif %}
+</form>
+<div class="panel"><div class="tbl-wrap">
+<table class="tbl">
+  <thead><tr><th>Name</th><th>Contact</th><th class="num">Actions</th></tr></thead>
+  <tbody>
+  {% for c in customers %}
+    <tr><td><span class="cell-strong">{{ c.name }}</span> <span class="id-tag">#{{ c.customer_id }}</span></td><td>{{ c.contact }}</td>
+        <td class="num">
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('customer_edit', customer_id=c.customer_id) }}">Edit</a>
+          <form class="d-inline" method="post" action="{{ url_for('customer_delete', customer_id=c.customer_id) }}" onsubmit="return confirm('Delete this customer?');">
+            <button class="btn btn-sm btn-outline-danger">Delete</button></form></td></tr>
+  {% else %}
+    <tr><td colspan="3"><div class="empty"><strong>{{ 'No customers match your search' if q else 'No customers yet' }}</strong>
+      {% if q %}Try a different name or contact.{% else %}<a href="{{ url_for('customer_new') }}">Add your first customer</a>{% endif %}</div></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

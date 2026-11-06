@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import pill %}
+{% block title %}Order history{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 class="page-title">Order history</h1><p class="page-sub">Every order, newest first.</p></div>
+  <a href="{{ url_for('order_new') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> New order</a>
+</div>
+<form class="toolbar" method="get">
+  <input class="form-control" name="q" value="{{ q }}" placeholder="Search by customer name">
+  <select class="form-select" name="status" style="max-width:190px">
+    <option value="">All statuses</option>
+    {% for s in statuses %}<option value="{{ s }}" {{ 'selected' if s == status }}>{{ s }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-secondary"><i class="bi bi-funnel"></i> Filter</button>
+  {% if q or status %}<a class="btn btn-link" href="{{ url_for('orders') }}">Clear filters</a>{% endif %}
+</form>
+<div class="panel"><div class="tbl-wrap">
+<table class="tbl">
+  <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th class="num">Units</th><th>Status</th><th class="num">Total</th><th></th></tr></thead>
+  <tbody>
+  {% for o in orders %}
+    <tr><td><a class="cell-strong" href="{{ url_for('order_detail', order_id=o.order_id) }}">#{{ o.order_id }}</a></td>
+        <td>{{ o.order_date }}</td><td>{{ o.customer }}</td>
+        <td class="num">{{ o.units }}</td><td>{{ pill(o.status) }}</td>
+        <td class="num cell-strong">{{ o.total|peso }}</td>
+        <td class="num"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('order_detail', order_id=o.order_id) }}">View</a></td></tr>
+  {% else %}
+    <tr><td colspan="7"><div class="empty"><strong>No orders found</strong>
+      {% if q or status %}Try clearing the filters.{% else %}<a href="{{ url_for('order_new') }}">Create the first order</a>{% endif %}</div></td></tr>
+  {% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Sales summary{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1 class="page-title">Sales summary</h1><p class="page-sub">Counts confirmed and completed orders only.</p></div></div>
+
+<div class="kpi-row">
+  <div class="panel kpi"><div class="kpi-label">Total revenue</div><div class="kpi-val">{{ totals.revenue|peso }}</div></div>
+  <div class="panel kpi"><div class="kpi-label">Orders sold</div><div class="kpi-val">{{ totals.orders }}</div></div>
+  <div class="panel kpi"><div class="kpi-label">Units sold</div><div class="kpi-val">{{ units }}</div></div>
+</div>
+
+<div class="two-col">
+  <section class="panel">
+    <h2 class="panel-title">Revenue by product</h2>
+    <p class="panel-note">Longest bar is the best seller.</p>
+    {% set top = by_product[0].revenue if by_product and by_product[0].revenue else 1 %}
+    {% for r in by_product %}
+      <div class="bar-row">
+        <div class="bar-top"><span>{{ r.name }}</span><span>{{ r.revenue|peso }}</span></div>
+        <div class="bar"><span style="width: {{ (r.revenue / top * 100)|round(1) }}%"></span></div>
+        <div class="bar-meta">{{ r.units }} unit{{ '' if r.units == 1 else 's' }} sold</div>
+      </div>
+    {% else %}
+      <div class="empty"><strong>No sales yet</strong>Confirm an order and it will show up here.</div>
+    {% endfor %}
+  </section>
+
+  <div>
+    <section class="panel mb-3">
+      <h2 class="panel-title">Sales by date</h2>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Date</th><th class="num">Orders</th><th class="num">Revenue</th></tr></thead>
+        <tbody>
+        {% for r in by_day %}<tr><td>{{ r.day }}</td><td class="num">{{ r.orders }}</td><td class="num cell-strong">{{ r.revenue|peso }}</td></tr>
+        {% else %}<tr><td colspan="3"><div class="empty">No sales yet.</div></td></tr>{% endfor %}
+        </tbody></table></div>
+    </section>
+    <section class="panel">
+      <h2 class="panel-title">Orders by status</h2>
+      <div class="panel-pad" style="padding-top:.5rem">
+        {% from "_macros.html" import pill %}
+        {% for r in by_status %}
+          <div class="d-flex justify-content-between align-items-center py-1">{{ pill(r.status) }}<span class="cell-strong">{{ r.n }}</span></div>
+        {% else %}<div class="text-muted">No orders yet.</div>{% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
